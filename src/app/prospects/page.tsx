@@ -93,6 +93,11 @@ export default function ProspectFinder() {
       if (apiKey) url.searchParams.append("apiKey", apiKey);
 
       const response = await fetch(url.toString());
+      
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.results) {

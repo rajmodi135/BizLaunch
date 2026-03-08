@@ -5,9 +5,6 @@ const repoBase = "/BizLaunch";
 const config = {
   output: "export",
   images: { unoptimized: true },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   ...(isPages
     ? {
         basePath: repoBase,
