@@ -16,6 +16,9 @@ import {
 
 const mockResults: any[] = [];
 
+const SUGGESTED_CITIES = ["Jaipur", "Delhi", "Mumbai", "Bangalore", "New York", "London"];
+const SUGGESTED_CATEGORIES = ["Cafe", "Restaurant", "Dentist", "Plumber", "Gym", "Bakery"];
+
 export default function ProspectFinder() {
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
@@ -41,7 +44,7 @@ export default function ProspectFinder() {
   };
 
   const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!query || !location) return;
 
     setIsSearching(true);
@@ -64,12 +67,12 @@ export default function ProspectFinder() {
         setIsSimulated(data.isSimulated);
       } else if (data.error) {
         console.error("Search Error:", data.error);
-        setResults(mockResults);
+        setResults([]);
         setIsSimulated(true);
       }
     } catch (error) {
       console.error("Fetch Error:", error);
-      setResults(mockResults);
+      setResults([]);
       setIsSimulated(true);
     } finally {
       setIsSearching(false);
@@ -85,6 +88,11 @@ export default function ProspectFinder() {
 
   const addToCRM = (id: string) => {
     setAddedIds(prev => [...prev, id]);
+  };
+
+  const selectSuggestion = (type: 'city' | 'category', value: string) => {
+    if (type === 'city') setLocation(value);
+    else setQuery(value);
   };
 
   return (
@@ -171,6 +179,44 @@ export default function ProspectFinder() {
             >
               {isSearching ? <Loader2 className="animate-spin" size={20} /> : "Find Prospects"}
             </button>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Suggested Categories:</span>
+              <div className="flex flex-wrap gap-2">
+                {SUGGESTED_CATEGORIES.map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => selectSuggestion('category', cat)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      query === cat ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Suggested Cities:</span>
+              <div className="flex flex-wrap gap-2">
+                {SUGGESTED_CITIES.map(city => (
+                  <button
+                    key={city}
+                    type="button"
+                    onClick={() => selectSuggestion('city', city)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      location === city ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {city}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-slate-50">

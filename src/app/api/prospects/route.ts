@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
-export const dynamic = "force-static";
 
-export async function GET() {
-  return NextResponse.json({ results: [], isSimulated: true });
-}
-
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("query");
   const location = searchParams.get("location");
@@ -17,10 +12,10 @@ export async function POST(request: Request) {
   }
 
   // If no API key, return sophisticated mock data based on query for demonstration
-  if (!apiKey) {
-    console.warn("GOOGLE_MAPS_API_KEY is missing. Returning simulated data.");
+  if (!apiKey || apiKey === "your_api_key_here") {
+    console.warn("GOOGLE_MAPS_API_KEY is missing or default. Returning simulated data.");
     
-    const mockCategories = ["Restaurant", "Plumber", "Dentist", "Bakery", "Gym", "Electrician"];
+    const mockCategories = ["Restaurant", "Plumber", "Dentist", "Bakery", "Gym", "Electrician", "Cafe"];
     const randomCategory = mockCategories[Math.floor(Math.random() * mockCategories.length)];
     
     const simulatedData = Array.from({ length: 6 }).map((_, i) => ({
