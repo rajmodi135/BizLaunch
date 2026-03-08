@@ -27,18 +27,22 @@ type User = {
   role: "admin" | "user";
   status: "active" | "inactive";
   joinedDate: string;
+  password?: string; // Optional field for custom passwords
 };
 
 const initialUsers: User[] = [
-  { id: "1", name: "BizLaunch Admin", userId: "BizLaunch", role: "admin", status: "active", joinedDate: "Mar 01, 2026" },
-  { id: "2", name: "Standard User", userId: "User", role: "user", status: "active", joinedDate: "Mar 05, 2026" },
+  { id: "1", name: "BizLaunch Admin", userId: "BizLaunch", role: "admin", status: "active", joinedDate: "Mar 01, 2026", password: "Jaipur@6621" },
+  { id: "2", name: "Standard User", userId: "User", role: "user", status: "active", joinedDate: "Mar 05, 2026", password: "User@123" },
 ];
 
 export default function AdminPanel() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPassModal, setShowPassModal] = useState(false);
+  const [showUserPassModal, setShowUserPassModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userPassForm, setUserPassForm] = useState({ new: "", confirm: "" });
   const [showPass, setShowPass] = useState(false);
   const [passForm, setPassForm] = useState({ old: "", new: "", confirm: "" });
   const [passError, setPassError] = useState("");
@@ -50,6 +54,16 @@ export default function AdminPanel() {
     const role = localStorage.getItem("user_role");
     if (role !== "admin") {
       router.push("/login");
+      return;
+    }
+
+    // Load users from localStorage or use initial
+    const storedUsers = localStorage.getItem("bizlaunch_users");
+    if (storedUsers) {
+      setUsers(JSON.parse(storedUsers));
+    } else {
+      setUsers(initialUsers);
+      localStorage.setItem("bizlaunch_users", JSON.stringify(initialUsers));
     }
   }, [router]);
 
@@ -80,9 +94,52 @@ export default function AdminPanel() {
     }
 
     localStorage.setItem("admin_password", passForm.new);
+    
+    // Also update the admin user in the list
+    const updatedUsers = users.map(u => 
+      u.userId.toLowerCase() === "bizlaunch" ? { ...u, password: passForm.new } : u
+    );
+    setUsers(updatedUsers);
+    localStorage.setItem("bizlaunch_users", JSON.stringify(updatedUsers));
+
     setPassSuccess(true);
     setPassForm({ old: "", new: "", confirm: "" });
     setTimeout(() => setShowPassModal(false), 2000);
+  };
+
+  const handleUserPasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassError("");
+    
+    if (!selectedUser) return;
+    if (userPassForm.new !== userPassForm.confirm) {
+      setPassError("Passwords do not match.");
+      return;
+    }
+    if (userPassForm.new.length < 4) {
+      setPassError("Password must be at least 4 characters.");
+      return;
+    }
+
+    const updatedUsers = users.map(u => 
+      u.id === selectedUser.id ? { ...u, password: userPassForm.new } : u
+    );
+    
+    setUsers(updatedUsers);
+    localStorage.setItem("bizlaunch_users", JSON.stringify(updatedUsers));
+    
+    // If we updated the main admin, sync the global admin password too
+    if (selectedUser.userId.toLowerCase() === "bizlaunch") {
+      localStorage.setItem("admin_password", userPassForm.new);
+    }
+
+    setPassSuccess(true);
+    setTimeout(() => {
+      setShowUserPassModal(false);
+      setSelectedUser(null);
+      setUserPassForm({ new: "", confirm: "" });
+      setPassSuccess(false);
+    }, 1500);
   };
 
   const handleAddUser = (e: React.FormEvent) => {
@@ -93,16 +150,21 @@ export default function AdminPanel() {
       userId: newUser.userId,
       role: newUser.role,
       status: "active",
-      joinedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })
+      joinedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+      password: newUser.role === "admin" ? "Jaipur@6621" : "User@123" // Default passwords
     };
-    setUsers([...users, user]);
+    const updatedUsers = [...users, user];
+    setUsers(updatedUsers);
+    localStorage.setItem("bizlaunch_users", JSON.stringify(updatedUsers));
     setNewUser({ name: "", userId: "", role: "user" });
     setShowAddModal(false);
   };
 
   const deleteUser = (id: string) => {
     if (confirm("Are you sure you want to delete this user?")) {
-      setUsers(users.filter(u => u.id !== id));
+      const updatedUsers = users.filter(u => u.id !== id);
+      setUsers(updatedUsers);
+      localStorage.setItem("bizlaunch_users", JSON.stringify(updatedUsers));
     }
   };
 
@@ -212,6 +274,16 @@ export default function AdminPanel() {
                     <td className="px-8 py-6 text-sm text-slate-500 font-medium">{user.joinedDate}</td>
                     <td className="px-8 py-6 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowUserPassModal(true);
+                          }}
+                          className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
+                          title="Change User Password"
+                        >
+                          <Key size={18} />
+                        </button>
                         <button className="p-2 text-slate-400 hover:text-blue-600 transition-colors">
                           <Edit size={18} />
                         </button>
@@ -369,6 +441,86 @@ export default function AdminPanel() {
                   className="flex-1 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
                 >
                   Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showUserPassModal && selectedUser && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-200">
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">Change User Password</h3>
+            <p className="text-slate-500 text-sm mb-6">Updating password for <strong>{selectedUser.name}</strong> ({selectedUser.userId})</p>
+            
+            <form onSubmit={handleUserPasswordChange} className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">New Password</label>
+                <div className="relative">
+                  <input
+                    type={showPass ? "text" : "password"}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    value={userPassForm.new}
+                    onChange={(e) => setUserPassForm({...userPassForm, new: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Confirm New Password</label>
+                <div className="relative">
+                  <input
+                    type={showPass ? "text" : "password"}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    value={userPassForm.confirm}
+                    onChange={(e) => setUserPassForm({...userPassForm, confirm: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
+              >
+                {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showPass ? "Hide Passwords" : "Show Passwords"}
+              </button>
+
+              {passError && (
+                <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-100">
+                  <AlertCircle size={16} />
+                  <span>{passError}</span>
+                </div>
+              )}
+
+              {passSuccess && (
+                <div className="flex items-center gap-2 text-emerald-600 text-sm bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+                  <CheckCircle2 size={16} />
+                  <span>Password updated successfully!</span>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setShowUserPassModal(false);
+                    setSelectedUser(null);
+                    setUserPassForm({ new: "", confirm: "" });
+                    setPassError("");
+                  }}
+                  className="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                >
+                  Save Password
                 </button>
               </div>
             </form>

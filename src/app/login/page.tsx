@@ -19,18 +19,36 @@ export default function LoginPage() {
     // Simple authentication logic for demonstration
     const normalizedUserId = userId.toLowerCase();
     
-    // Get stored passwords or use defaults
-    const storedAdminPass = localStorage.getItem("admin_password") || "Jaipur@6621";
-    const storedUserPass = localStorage.getItem("user_password") || "User@123";
+    // Load users from localStorage
+    const storedUsersJson = localStorage.getItem("bizlaunch_users");
+    const storedUsers = storedUsersJson ? JSON.parse(storedUsersJson) : [];
     
-    if (role === "admin" && normalizedUserId === "bizlaunch" && password === storedAdminPass) {
-      localStorage.setItem("auth_token", "admin_token");
-      localStorage.setItem("user_role", "admin");
-      router.push("/admin");
-    } else if (role === "user" && normalizedUserId === "user" && password === storedUserPass) {
-      localStorage.setItem("auth_token", "user_token");
-      localStorage.setItem("user_role", "user");
-      router.push("/");
+    // Find matching user
+    const matchingUser = storedUsers.find((u: any) => 
+      u.userId.toLowerCase() === normalizedUserId && 
+      u.role === role
+    );
+
+    // Get stored passwords or use defaults if user not found in list (fallback)
+    const defaultAdminPass = localStorage.getItem("admin_password") || "Jaipur@6621";
+    const defaultUserPass = localStorage.getItem("user_password") || "User@123";
+    
+    let isValid = false;
+    if (matchingUser) {
+      isValid = password === matchingUser.password;
+    } else {
+      // Fallback for default credentials if list is empty or user not in list
+      if (role === "admin" && normalizedUserId === "bizlaunch") {
+        isValid = password === defaultAdminPass;
+      } else if (role === "user" && normalizedUserId === "user") {
+        isValid = password === defaultUserPass;
+      }
+    }
+
+    if (isValid) {
+      localStorage.setItem("auth_token", `${role}_token`);
+      localStorage.setItem("user_role", role);
+      router.push(role === "admin" ? "/admin" : "/");
     } else {
       setError(`Invalid credentials. Check your User ID or Password.`);
     }
