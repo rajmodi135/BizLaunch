@@ -4,6 +4,7 @@ const repoBase = "/BizLaunch";
 
 const config = {
   output: "export",
+  trailingSlash: true,
   images: { unoptimized: true },
   ...(isPages
     ? {
