@@ -100,11 +100,13 @@ export default function ProspectFinder() {
         setIsSimulated(data.isSimulated);
       } else if (data.error) {
         console.error("Search Error:", data.error);
-        alert(`Error: ${data.error}`);
+        setResults(mockResults);
+        setIsSimulated(true);
       }
     } catch (error) {
       console.error("Fetch Error:", error);
-      alert("Failed to search. Check console for details.");
+      setResults(mockResults);
+      setIsSimulated(true);
     } finally {
       setIsSearching(false);
     }

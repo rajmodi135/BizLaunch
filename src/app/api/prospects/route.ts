@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
+export const dynamic = "force-static";
 
-export async function GET(request: Request) {
+export async function GET() {
+  return NextResponse.json({ results: [], isSimulated: true });
+}
+
+export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("query");
   const location = searchParams.get("location");
