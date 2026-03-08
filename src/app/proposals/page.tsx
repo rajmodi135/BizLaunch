@@ -13,37 +13,7 @@ import {
   Calendar
 } from "lucide-react";
 
-const proposals = [
-  {
-    id: "1",
-    client: "Elite Dental Care",
-    type: "Premium Website",
-    value: "$1,800",
-    status: "Sent",
-    date: "Mar 05, 2026",
-    color: "bg-blue-50 text-blue-600 border-blue-100"
-  },
-  {
-    id: "2",
-    name: "Sunset Cafe Refresh",
-    client: "Sunset Cafe",
-    type: "Redesign + SEO",
-    value: "$1,200",
-    status: "Accepted",
-    date: "Mar 01, 2026",
-    color: "bg-emerald-50 text-emerald-600 border-emerald-100"
-  },
-  {
-    id: "3",
-    name: "Plumbing Services Landing",
-    client: "Quick Fix Plumbers",
-    type: "Landing Page",
-    value: "$600",
-    status: "Draft",
-    date: "Feb 28, 2026",
-    color: "bg-slate-50 text-slate-600 border-slate-100"
-  }
-];
+const proposals: any[] = [];
 
 export default function Proposals() {
   const [searchTerm, setSearchTerm] = useState("");

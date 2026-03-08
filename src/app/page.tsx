@@ -9,18 +9,13 @@ import {
 } from "lucide-react";
 
 const stats = [
-  { name: "Total Prospects", value: "124", change: "+12%", icon: Target, color: "bg-blue-500" },
-  { name: "Active Clients", value: "18", change: "+4%", icon: Users, color: "bg-emerald-500" },
-  { name: "Avg Deal Size", value: "$1,200", change: "+8%", icon: DollarSign, color: "bg-purple-500" },
-  { name: "Conversion Rate", value: "14.5%", change: "+2%", icon: TrendingUp, color: "bg-orange-500" },
+  { name: "Total Prospects", value: "0", change: "+0%", icon: Target, color: "bg-blue-500" },
+  { name: "Active Clients", value: "0", change: "+0%", icon: Users, color: "bg-emerald-500" },
+  { name: "Avg Deal Size", value: "$0", change: "+0%", icon: DollarSign, color: "bg-purple-500" },
+  { name: "Conversion Rate", value: "0%", change: "+0%", icon: TrendingUp, color: "bg-orange-500" },
 ];
 
-const recentActivity = [
-  { business: "The Italian Kitchen", action: "New prospect found", time: "2 hours ago", status: "Missing Website" },
-  { business: "Elite Dental Care", action: "Proposal sent", time: "5 hours ago", status: "Contacted" },
-  { business: "Sunset Cafe", action: "Contract signed", time: "Yesterday", status: "Active" },
-  { business: "Ace Hardware", action: "Audit completed", time: "2 days ago", status: "Follow up" },
-];
+const recentActivity: any[] = [];
 
 export default function Dashboard() {
   return (

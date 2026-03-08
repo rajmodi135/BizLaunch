@@ -14,48 +14,7 @@ import {
   Settings
 } from "lucide-react";
 
-const mockResults = [
-  {
-    id: "1",
-    name: "Golden Dragon Chinese",
-    rating: 4.8,
-    reviews: 124,
-    address: "123 Main St, Springfield",
-    phone: "(555) 123-4567",
-    website: null,
-    category: "Restaurant"
-  },
-  {
-    id: "2",
-    name: "Blue Ribbon Auto Repair",
-    rating: 4.5,
-    reviews: 89,
-    address: "456 Oak Ave, Springfield",
-    phone: "(555) 987-6543",
-    website: null,
-    category: "Automotive"
-  },
-  {
-    id: "3",
-    name: "Petals & Blooms Florist",
-    rating: 4.9,
-    reviews: 56,
-    address: "789 Pine Rd, Springfield",
-    phone: "(555) 456-7890",
-    website: null,
-    category: "Retail"
-  },
-  {
-    id: "4",
-    name: "Springfield Dental Clinic",
-    rating: 4.7,
-    reviews: 210,
-    address: "101 Elm St, Springfield",
-    phone: "(555) 222-3333",
-    website: "https://springfielddental.com",
-    category: "Medical"
-  }
-];
+const mockResults: any[] = [];
 
 export default function ProspectFinder() {
   const [query, setQuery] = useState("");

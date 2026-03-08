@@ -13,48 +13,7 @@ import {
   ExternalLink
 } from "lucide-react";
 
-const initialClients = [
-  {
-    id: "1",
-    name: "Golden Dragon Chinese",
-    status: "New",
-    rating: 4.8,
-    category: "Restaurant",
-    phone: "(555) 123-4567",
-    addedDate: "Mar 08, 2026",
-    color: "bg-blue-50 text-blue-600 border-blue-100"
-  },
-  {
-    id: "2",
-    name: "Blue Ribbon Auto Repair",
-    status: "Contacted",
-    rating: 4.5,
-    category: "Automotive",
-    phone: "(555) 987-6543",
-    addedDate: "Mar 07, 2026",
-    color: "bg-amber-50 text-amber-600 border-amber-100"
-  },
-  {
-    id: "3",
-    name: "Petals & Blooms Florist",
-    status: "Meeting",
-    rating: 4.9,
-    category: "Retail",
-    phone: "(555) 456-7890",
-    addedDate: "Mar 06, 2026",
-    color: "bg-purple-50 text-purple-600 border-purple-100"
-  },
-  {
-    id: "4",
-    name: "Sunset Cafe",
-    status: "Won",
-    rating: 4.7,
-    category: "Restaurant",
-    phone: "(555) 111-2222",
-    addedDate: "Mar 01, 2026",
-    color: "bg-emerald-50 text-emerald-600 border-emerald-100"
-  }
-];
+const initialClients: any[] = [];
 
 export default function CRM() {
   const [clients, setClients] = useState(initialClients);
