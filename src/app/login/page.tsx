@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, User, ShieldCheck, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Lock, User, ShieldCheck, AlertCircle, Eye, EyeOff, Sun, Moon } from "lucide-react";
+
+import { dataService } from "@/utils/dataService";
 
 export default function LoginPage() {
   const [role, setRole] = useState<"user" | "admin">("user");
@@ -10,38 +12,57 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    const storedTheme = (localStorage.getItem("theme") as "dark" | "light") || "dark";
+    setTheme(storedTheme);
+    document.documentElement.dataset.theme = storedTheme;
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(storedTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(nextTheme);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     // Simple authentication logic for demonstration
-    const normalizedUserId = userId.toLowerCase();
+    const normalizedUserId = userId.trim().toLowerCase();
+    const normalizedPassword = password.trim();
     
-    // Load users from localStorage
-    const storedUsersJson = localStorage.getItem("bizlaunch_users");
-    const storedUsers = storedUsersJson ? JSON.parse(storedUsersJson) : [];
+    // Load users from DataService
+    const storedUsers = await dataService.getUsers();
     
     // Find matching user
     const matchingUser = storedUsers.find((u: any) => 
-      u.userId.toLowerCase() === normalizedUserId && 
+      u.userId.trim().toLowerCase() === normalizedUserId && 
       u.role === role
     );
 
     // Get stored passwords or use defaults if user not found in list (fallback)
-    const defaultAdminPass = localStorage.getItem("admin_password") || "Jaipur@6621";
-    const defaultUserPass = localStorage.getItem("user_password") || "User@123";
+    const adminPassFromService = await dataService.getAdminPassword();
+    const defaultAdminPass = adminPassFromService.trim();
+    const defaultUserPass = "User@123"; // Base default
     
     let isValid = false;
     if (matchingUser) {
-      isValid = password === matchingUser.password;
+      isValid = normalizedPassword === matchingUser.password?.trim();
     } else {
       // Fallback for default credentials if list is empty or user not in list
       if (role === "admin" && normalizedUserId === "bizlaunch") {
-        isValid = password === defaultAdminPass;
+        isValid = normalizedPassword === defaultAdminPass;
       } else if (role === "user" && normalizedUserId === "user") {
-        isValid = password === defaultUserPass;
+        isValid = normalizedPassword === defaultUserPass;
       }
     }
 
@@ -56,46 +77,58 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-slate-200 border border-slate-100 p-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex p-4 bg-blue-50 rounded-2xl text-blue-600 mb-4">
-            {role === "admin" ? <ShieldCheck size={32} /> : <User size={32} />}
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden transition-colors">
+      {/* Theme Toggle Button */}
+      <button 
+        onClick={toggleTheme}
+        className="absolute top-8 right-8 p-3 rounded-2xl bg-card border border-border text-foreground hover:bg-border/50 transition-all z-20 shadow-lg"
+      >
+        {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+      </button>
+
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
+
+      <div className="max-w-md w-full bg-card rounded-[2.5rem] shadow-2xl border border-border p-10 relative z-10 transition-colors">
+        <div className="text-center mb-10">
+          <div className="inline-flex p-5 bg-blue-500/10 rounded-3xl text-blue-400 mb-6 border border-blue-500/20 shadow-lg">
+            {role === "admin" ? <ShieldCheck size={40} /> : <User size={40} />}
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">
+          <h1 className="text-4xl font-bold text-foreground tracking-tight">
             {role === "admin" ? "Admin Portal" : "User Login"}
           </h1>
-          <p className="text-slate-500 mt-2">Welcome to BizLaunch Manager</p>
+          <p className="text-slate-500 mt-3 font-medium">Welcome to BizLaunch Manager</p>
         </div>
 
-        <div className="flex p-1 bg-slate-100 rounded-xl mb-8">
+        <div className="flex p-1.5 bg-border/30 rounded-2xl mb-10 border border-border">
           <button
             onClick={() => setRole("user")}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-              role === "user" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
+              role === "user" ? "bg-background text-foreground shadow-lg" : "text-slate-500 hover:text-foreground"
             }`}
           >
             User
           </button>
           <button
             onClick={() => setRole("admin")}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-              role === "admin" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
+              role === "admin" ? "bg-background text-foreground shadow-lg" : "text-slate-500 hover:text-foreground"
             }`}
           >
             Admin
           </button>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">User ID</label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">User ID</label>
+            <div className="relative group">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={20} />
               <input
                 type="text"
                 required
-                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-foreground transition-all placeholder:text-slate-600"
                 placeholder="Enter User ID"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
@@ -104,13 +137,13 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Password</label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={20} />
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                className="w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full pl-12 pr-12 py-4 bg-background border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 text-foreground transition-all placeholder:text-slate-600"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -118,29 +151,29 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-foreground transition-colors"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-100">
-              <AlertCircle size={16} />
-              <span>{error}</span>
+            <div className="flex items-center gap-3 text-red-400 text-sm bg-red-400/5 p-4 rounded-2xl border border-red-400/10 animate-in fade-in slide-in-from-top-1">
+              <AlertCircle size={18} className="shrink-0" />
+              <span className="font-medium">{error}</span>
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 mt-4"
+            className="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-900/20 mt-6 active:scale-[0.98]"
           >
             Sign In as {role === "admin" ? "Admin" : "User"}
           </button>
         </form>
 
-        <p className="text-center text-slate-400 text-xs mt-8">
+        <p className="text-center text-slate-600 text-xs mt-10 font-bold uppercase tracking-tighter">
           BizLaunch v0.1.0 • Secure Access Only
         </p>
       </div>

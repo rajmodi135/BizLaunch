@@ -24,11 +24,18 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, router]);
 
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme") || "dark";
+    document.documentElement.dataset.theme = storedTheme;
+    document.documentElement.classList.remove("dark", "light");
+    document.documentElement.classList.add(storedTheme);
+  }, []);
+
   // Don't show anything while we check auth status (prevents flickering)
   if (isAuthenticated === null || (isAuthenticated === false && !pathname?.startsWith("/login"))) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -41,9 +48,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-900 w-full">
+    <div className="flex h-screen bg-background overflow-hidden text-foreground w-full">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-slate-50">
+      <main className="flex-1 overflow-y-auto bg-background/50">
         {children}
       </main>
     </div>
